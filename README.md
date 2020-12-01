@@ -1,6 +1,6 @@
 # Seia-Soto/packit-over
 
-A project to against Deep Packet Inspection vendors with Node.JS.
+A project to bypass Deep Packet Inspection vendors with Node.JS.
 
 > Always working on!
 
