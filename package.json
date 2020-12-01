@@ -1,0 +1,14 @@
+{
+  "name": "packit-over",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Seia-Soto <seia@outlook.kr>",
+  "license": "MIT",
+  "scripts": {
+    "test": "cross-env DEBUG=* node scripts/test $1"
+  },
+  "dependencies": {
+    "cross-env": "^7.0.2",
+    "debug": "^4.3.1"
+  }
+}
