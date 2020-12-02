@@ -1,13 +1,14 @@
 const { Socket } = require('net')
 const url = require('url')
 
-const { createDebugger } = require('../utils')
-const { name, version } = require('../package.json')
-const validate = require('./validate')
-const obfuscate = require('./obfuscate')
-const Response = require('./Response')
+const { createDebugger } = require('../../utils')
+const { name, version } = require('../../package.json')
+const validate = require('../validate')
+const parse = require('../parse')
+const obfuscate = require('../obfuscate')
+const Response = require('../Response')
 
-const debug = createDebugger('http')
+const debug = createDebugger('request/http')
 
 const httpRequest = (url = '', options = {}) => {
   const urlObject = validate.url(url)
@@ -132,39 +133,10 @@ const httpRequest = (url = '', options = {}) => {
     })
     client.on('close', () => {
       debug('remote server closed the connection')
-      debug('resolving received packet fragments')
 
-      const rawResponse = fragments.join('').split('\r\n')
-      const response = new Response(options)
-      // NOTE: resolve in following sequence;
-      const resolvers = [
-        'resolveProtocolHeader',
-        'resolveHTTPHeader',
-        'resolveHTTPBody'
-      ]
-      let resolverType = 0
+      const response = parse.http(fragments)
 
-      // NOTE: set rawResponse;
-      response.rawResponse = rawResponse
-
-      rawResponse.map((fragment, idx) => {
-        const resolver = resolvers[resolverType]
-
-        debug('resolving fragment:', fragment)
-
-        if (fragment) {
-          response[resolver](fragment)
-        }
-        if (!idx || !fragment) {
-          const nextResolver = resolvers[resolverType + 1]
-
-          if (nextResolver) {
-            debug('switching to next resolver as we received \\r\\n\\r\\n signal:', nextResolver)
-
-            resolverType++
-          }
-        }
-      })
+      response.options = options
 
       const isRedirect =
         (response.status.code === 301 || response.status.code === 302 || response.status.code === 307) &&
@@ -189,6 +161,8 @@ const httpRequest = (url = '', options = {}) => {
           debug('preventing additional redirect because client reached max redirect limit')
 
           if (options._keepRedirectedSessions) {
+            debug('supressing throwing error and keeping stacked sessions')
+
             resolve(response)
           } else {
             throw new Error('PACKIT_ERR_MAX_REDIRECT_REACHED')

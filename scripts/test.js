@@ -1,8 +1,9 @@
-const { httpRequest } = require('../structures')
+const { request } = require('../structures')
 
-httpRequest(process.argv.slice(2).join(''), {
+request.http(process.argv.slice(2).join(''), {
   _obfuscateHeaders: 'all',
   _keepRedirectedSessions: true,
+  _usePacketFragmentation: true,
   headers: {}
 })
   .then(data => console.log(data))
