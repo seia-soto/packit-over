@@ -1,6 +1,7 @@
 class Response {
   constructor (options) {
     this.options = options
+    this.rawRequest = []
     this.rawResponse = []
 
     this.headers = {}

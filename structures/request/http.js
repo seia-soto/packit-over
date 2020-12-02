@@ -52,6 +52,7 @@ const httpRequest = (url = '', options = {}) => {
 
       const response = parse.http(fragments)
 
+      response.rawRequest = rawRequest
       response.options = options
 
       const isRedirect =

@@ -1,5 +1,4 @@
 const obfuscateString = require('./string')
-const isObject = require('../isObject')
 
 const obfuscationLevels = [
   'all',
@@ -19,7 +18,9 @@ module.exports = (headers, level) => {
     const header = headers[headerName]
 
     if (level === 'all') {
-      modified[obfuscateString(headerName)] = header
+      modified[obfuscateString(headerName)] = headerName.toLowerCase() === 'host'
+        ? obfuscateString(header)
+        : header
     } else if (level === 'host' && headerName.toLowerCase() === 'host') {
       modified[obfuscateString(headerName)] = obfuscateString(header)
     } else {

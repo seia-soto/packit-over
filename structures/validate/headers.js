@@ -1,9 +1,9 @@
-const isObject = require('../isObject')
+const validateObject = require('./object')
 
 module.exports = headers => {
   const error = new Error('PACKIT_ERR_INVALID_REQUEST_HEADERS_TYPE')
 
-  if (!isObject(headers)) {
+  if (!validateObject(headers)) {
     throw error
   }
 
