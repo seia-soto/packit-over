@@ -1,4 +1,4 @@
-const { httpRequest } = require('./structures')
+const { httpRequest } = require('../structures')
 
 httpRequest(process.argv.slice(2).join(''), {
   _obfuscateHeaders: 'all',

@@ -31,7 +31,7 @@ Finally, I decided to write the HTTP client which can bypass DPI vendors.
 - [ ] HTTP
   - [x] Compiling HTTP packet
     - [x] Support HTTP headers
-    - [ ] Support HTTP body
+    - [x] Support HTTP body
     - [ ] Obfuscate HTTP headers
   - [ ] Sending HTTP packet
     - [x] Send packet

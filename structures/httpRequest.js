@@ -22,6 +22,7 @@ const httpRequest = (url = '', options = {}) => {
   options._usePacketFragmentation = options._usePacketFragmentation || false
   options.method = options.method || 'GET'
   options.headers = options.headers || {}
+  options.body = options.body || ''
 
   debug('received options:', JSON.stringify(options))
 
@@ -75,6 +76,15 @@ const httpRequest = (url = '', options = {}) => {
     debug(`> ${headerName}: ${header}`)
 
     rawRequest.push(`${headerName}:${header}`)
+  }
+
+  // NOTE: put body;
+  if (options.body) {
+    debug('defining HTTP body')
+
+    // NOTE: put empty line before body;
+    rawRequest.push('')
+    rawRequest.push(options.body)
   }
 
   // NOTE: complete request(\r\n\r\n);
