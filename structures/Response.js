@@ -8,6 +8,7 @@ class Response {
       code: -1,
       message: 'unavailable'
     }
+    // this.text
   }
 
   _packitStack () {
