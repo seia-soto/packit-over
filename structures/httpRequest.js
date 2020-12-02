@@ -17,14 +17,18 @@ const httpRequest = (url = '', options = {}) => {
   }
 
   // NOTE: prepare options;
+  options._packit = options._packit || {
+    stacks: [],
+    redirects: 0
+  }
   options._httpVersion = options.httpVersion || '1.1'
   options._obfuscateHeaders = options._obfuscateHeaders || 'host'
   options._usePacketFragmentation = options._usePacketFragmentation || false
+  options._maxRedirect = options._maxRedirect || 5
+  options._keepRedirectedSessions = options._keepRedirectedSessions || false
   options.method = options.method || 'GET'
   options.headers = options.headers || {}
   options.body = options.body || ''
-
-  debug('received options:', JSON.stringify(options))
 
   // NOTE: prepare headers object;
   debug('validating received headers object and compiling with required HTTP headers')
@@ -130,8 +134,8 @@ const httpRequest = (url = '', options = {}) => {
       debug('remote server closed the connection')
       debug('resolving received packet fragments')
 
-      const response = new Response(fragments.join('').split('\r\n'))
-      const rawResponse = response.rawResponse
+      const rawResponse = fragments.join('').split('\r\n')
+      const response = new Response(options)
       // NOTE: resolve in following sequence;
       const resolvers = [
         'resolveProtocolHeader',
@@ -140,8 +144,10 @@ const httpRequest = (url = '', options = {}) => {
       ]
       let resolverType = 0
 
-      for (let i = 0, l = rawResponse.length; i < l; i++) {
-        const fragment = rawResponse[i]
+      // NOTE: set rawResponse;
+      response.rawResponse = rawResponse
+
+      rawResponse.map((fragment, idx) => {
         const resolver = resolvers[resolverType]
 
         debug('resolving fragment:', fragment)
@@ -149,14 +155,62 @@ const httpRequest = (url = '', options = {}) => {
         if (fragment) {
           response[resolver](fragment)
         }
-        if (!fragment || !i) {
-          debug('switching to next resolver as we received \\r\\n\\r\\n signal:', resolvers[resolverType + 1])
+        if (!idx || !fragment) {
+          const nextResolver = resolvers[resolverType + 1]
 
-          resolverType++
+          if (nextResolver) {
+            debug('switching to next resolver as we received \\r\\n\\r\\n signal:', nextResolver)
+
+            resolverType++
+          }
         }
-      }
+      })
 
-      resolve(response)
+      const isRedirect =
+        (response.status.code === 301 || response.status.code === 302 || response.status.code === 307) &&
+        (response.headers.location)
+
+      if (isRedirect) {
+        debug('detected redirection request from server')
+
+        // NOTE: stack current session;
+        if (options._keepRedirectedSessions) {
+          debug('stacking current session')
+
+          options._packit.stacks.push(response._packitStack())
+        }
+
+        debug('updating current redirect count:', options._packit.redirects)
+
+        options._packit.redirects++
+
+        // NOTE: check if current redirect count reached out max redirect;
+        if (options._packit.redirects >= options._maxRedirect) {
+          debug('preventing additional redirect because client reached max redirect limit')
+
+          if (options._keepRedirectedSessions) {
+            resolve(response)
+          } else {
+            throw new Error('PACKIT_ERR_MAX_REDIRECT_REACHED')
+          }
+        } else {
+          // NOTE: check if redirection contains full url and patch it;
+          let location = response.headers.location
+
+          if (!validate.url(location)) {
+            debug('patching redirect destination url because the url provided is not full url')
+
+            location = `${urlObject.protocol}//${urlObject.host}${urlObject.path}`
+          }
+
+          debug('handling redirect and passing current session:', response.headers.location)
+
+          // NOTE: resolve with another promise;
+          resolve(httpRequest(response.headers.location, options))
+        }
+      } else {
+        resolve(response)
+      }
     })
   })
 }

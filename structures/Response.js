@@ -1,6 +1,7 @@
 class Response {
-  constructor (buffer) {
-    this.rawResponse = buffer
+  constructor (options) {
+    this.options = options
+    this.rawResponse = []
 
     this.headers = {}
     this.status = {
@@ -9,9 +10,17 @@ class Response {
     }
   }
 
+  _packitStack () {
+    const currentSession = JSON.parse(JSON.stringify(this))
+
+    currentSession.options._packit.stacks = 'you cannot access to previous stacks via stacked item'
+
+    return currentSession
+  }
+
   setStatus (code, message) {
     this.status = {
-      code,
+      code: Number(code),
       message
     }
   }
@@ -21,6 +30,10 @@ class Response {
     }
 
     this.headers[key.trim().toLowerCase()] = value.trim()
+  }
+
+  getHeader (key) {
+    return this.headers[key.trim().toLowerCase()]
   }
 
   resolveProtocolHeader (fragment) {
@@ -35,9 +48,9 @@ class Response {
     this.setStatus(responseCode, responseMessage.join(' '))
   }
   resolveHTTPHeader (fragment) {
-    const [key, ...value] = fragment.split(' ')
+    const [key, ...value] = fragment.split(':')
 
-    this.setHeader(key, value.join(' '))
+    this.setHeader(key, value.join(':'))
   }
   resolveHTTPBody (fragment) {
     this.text = this.text || ''

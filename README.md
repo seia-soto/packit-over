@@ -45,9 +45,9 @@ Finally, I decided to write the HTTP client which can bypass DPI vendors.
       - [x] Identify HTTP status message
     - [x] Identify HTTP header
     - [x] Identify HTTP body
-    - [ ] Resolve HTTP packet header
-      - [ ] Support redirection
-      - [ ] Support max-redirection counter
+    - [x] Resolve HTTP packet header
+      - [x] Support redirection
+      - [x] Support max-redirection counter
     - [ ] Resolve packet with advanced data structures
     - [ ] Support heuristic DPI detection
 - [ ] HTTPS (yet)
